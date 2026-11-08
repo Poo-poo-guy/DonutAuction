@@ -23,6 +23,24 @@ public final class AuctionConfig {
       text = 0xEDF3FA,
       timer = 0xFFFFFF,
       urgent = 0xFF8EAB;
+  public int schemaVersion = 2, uiFont = 0, timerFont = 2, endingFont = 2, fontWeight = 1;
+  public double textSize = 1,
+      timerSize = 1,
+      endingSize = 1.5,
+      endingDuration = 2.8,
+      endingMultiplier = 4,
+      hudWidth = 328,
+      hudHeight = 116,
+      itemSize = 56;
+  public boolean endingEnabled = true,
+      endingGlow = true,
+      showHours = false,
+      itemCircle = true,
+      borders = true,
+      gradient = true;
+  public String endingText = "AUCTION ENDED!";
+  public int endingColor = 0x9EF0CB;
+  public Map<String, JsonObject> auctionPresets = new LinkedHashMap<>();
   public int font = 0, animationStyle = 0;
   public long duration = 120;
   public List<Long> presets = new ArrayList<>(List.of(30L, 60L, 120L, 300L));
@@ -33,6 +51,12 @@ public final class AuctionConfig {
       try {
         AuctionConfig c = GSON.fromJson(Files.readString(PATH), AuctionConfig.class);
         if (c == null) throw new IOException("Empty configuration");
+        JsonObject original = JsonParser.parseString(Files.readString(PATH)).getAsJsonObject();
+        if (!original.has("schemaVersion")) {
+          c.uiFont = 0;
+          c.timerFont = 2;
+          c.endingFont = 2;
+        }
         c.validate();
         return c;
       } catch (Exception e) {
@@ -58,6 +82,21 @@ public final class AuctionConfig {
     rotationSpeed = finite(rotationSpeed, 32, -180, 180);
     animationSeconds = finite(animationSeconds, .42, .15, .85);
     font = Math.clamp(font, 0, 2);
+    uiFont = Math.clamp(uiFont, 0, 3);
+    timerFont = Math.clamp(timerFont, 0, 3);
+    endingFont = Math.clamp(endingFont, 0, 3);
+    fontWeight = Math.clamp(fontWeight, 0, 2);
+    textSize = finite(textSize, 1, .6, 1.5);
+    timerSize = finite(timerSize, 1, .6, 1.3);
+    endingSize = finite(endingSize, 1.5, .6, 2.5);
+    endingDuration = finite(endingDuration, 2.8, .5, 8);
+    endingMultiplier = finite(endingMultiplier, 4, 1, 8);
+    hudWidth = finite(hudWidth, 328, 260, 520);
+    hudHeight = finite(hudHeight, 116, 100, 180);
+    itemSize = finite(itemSize, 56, 28, 68);
+    if (endingText == null) endingText = "AUCTION ENDED!";
+    endingText = endingText.substring(0, Math.min(64, endingText.length()));
+    if (auctionPresets == null) auctionPresets = new LinkedHashMap<>();
     animationStyle = Math.clamp(animationStyle, 0, 2);
     duration = Math.clamp(duration, 1, AuctionTimer.MAX_SECONDS);
     if (presets == null) presets = new ArrayList<>();
@@ -78,6 +117,24 @@ public final class AuctionConfig {
 
   private static double finite(double v, double fallback, double min, double max) {
     return Double.isFinite(v) ? Math.clamp(v, min, max) : fallback;
+  }
+
+  public void savePreset(String name) {
+    JsonObject value = GSON.toJsonTree(this).getAsJsonObject();
+    value.remove("auctionPresets");
+    value.remove("presets");
+    auctionPresets.put(name, value);
+    save();
+  }
+
+  public AuctionConfig preset(String name) {
+    JsonObject j = auctionPresets.get(name);
+    if (j == null) return null;
+    AuctionConfig c = GSON.fromJson(j, AuctionConfig.class);
+    c.auctionPresets = auctionPresets;
+    c.presets = new ArrayList<>(presets);
+    c.validate();
+    return c;
   }
 
   public void save() {

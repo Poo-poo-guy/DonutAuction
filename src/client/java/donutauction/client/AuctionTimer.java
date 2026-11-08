@@ -9,6 +9,21 @@ public final class AuctionTimer {
   private long remaining, deadline;
   private boolean running;
   private long revision;
+  private long cycle, resetSeconds;
+  private boolean ended;
+
+  public long cycle() {
+    return cycle;
+  }
+
+  public boolean ended() {
+    remainingNanos();
+    return ended;
+  }
+
+  public long endedAt() {
+    return deadline;
+  }
 
   public AuctionTimer(long seconds) {
     this(seconds, System::nanoTime);
@@ -25,6 +40,7 @@ public final class AuctionTimer {
     if (value == 0) {
       remaining = 0;
       running = false;
+      ended = true;
     }
     return value;
   }
@@ -43,6 +59,7 @@ public final class AuctionTimer {
   }
 
   public void start() {
+    if (ended) reset(resetSeconds);
     if (!running && remaining > 0) {
       deadline = clock.getAsLong() + remaining;
       running = true;
@@ -62,6 +79,9 @@ public final class AuctionTimer {
   }
 
   public void reset(long seconds) {
+    cycle++;
+    ended = false;
+    resetSeconds = seconds;
     revision++;
     running = false;
     remaining = Math.clamp(seconds, 0, MAX_SECONDS) * 1_000_000_000L;
@@ -69,11 +89,20 @@ public final class AuctionTimer {
 
   public void add(long seconds) {
     revision++;
+    boolean wasEnded = ended;
     long value =
         Math.clamp(remainingNanos() + seconds * 1_000_000_000L, 0, MAX_SECONDS * 1_000_000_000L);
     remaining = value;
+    if (wasEnded && value > 0) {
+      cycle++;
+      ended = false;
+    }
     if (running) deadline = clock.getAsLong() + value;
-    if (value == 0) running = false;
+    if (value == 0) {
+      running = false;
+      ended = true;
+      deadline = clock.getAsLong();
+    }
   }
 
   public static String format(long seconds) {

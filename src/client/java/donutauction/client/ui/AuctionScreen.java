@@ -24,6 +24,7 @@ public final class AuctionScreen extends Screen {
   private final List<ItemStack> allItems = new ArrayList<>(), filtered = new ArrayList<>();
   private final Map<Integer, Double> itemHover = new HashMap<>();
   private int tab = 0, binding = -1;
+  private int fontMenu = -1, fontX, fontY;
   private EditBox search, duration;
   private double uiScale = 1, originX, originY;
   private double transition = 0,
@@ -82,14 +83,14 @@ public final class AuctionScreen extends Screen {
         () -> mod.action(0),
         false);
     button(fixed, 124, 439, 94, 28, () -> "Close", this::onClose, false);
-    String[] tabs = {"Appearance", "Timer", "Item", "Controls"};
-    for (int i = 0; i < 4; i++) {
+    String[] tabs = {"Surface", "Timer", "Items", "Keys", "Type", "Finale", "Layout"};
+    for (int i = 0; i < 7; i++) {
       final int t = i;
       button(
           fixed,
-          264 + i * 120,
+          264 + i * 68,
           78,
-          112,
+          63,
           27,
           () -> tabs[t],
           () -> {
@@ -100,7 +101,9 @@ public final class AuctionScreen extends Screen {
           },
           false);
     }
-    search = new EditBox(font, 280, 166, 444, 22, Component.literal("Search items by name or ID"));
+    search =
+        new PremiumEditBox(
+            font, 280, 166, 444, 22, Component.literal("Search items by name or ID"));
     search.setMaxLength(128);
     search.setBordered(false);
     search.setTextColor(0xFFEAF2FC);
@@ -159,11 +162,11 @@ public final class AuctionScreen extends Screen {
   }
 
   private EditBox field(int x, int y, int w, String text, String hint, Consumer<String> responder) {
-    EditBox box = new EditBox(font, x + 9, y + 9, w - 18, 18, Component.literal(hint));
+    EditBox box = new PremiumEditBox(font, x + 9, y + 9, w - 18, 18, Component.literal(hint));
     box.setBordered(false);
     box.setTextColor(0xFFEAF2FC);
     box.setTextShadow(false);
-    box.setMaxLength(32);
+    box.setMaxLength(64);
     box.setValue(text);
     box.setHint(Component.literal(hint));
     if (responder != null) box.setResponder(responder);
@@ -236,8 +239,11 @@ public final class AuctionScreen extends Screen {
             253,
             220,
             30,
-            () -> "Font: " + new String[] {"Studio Sans", "Studio Mono", "Minecraft"}[c.font],
-            () -> c.font = (c.font + 1) % 3,
+            () -> "Typography settings →",
+            () -> {
+              tab = 4;
+              buildBody();
+            },
             false);
         toggle(518, 253, 220, "Soft shadow", () -> c.shadow, () -> c.shadow = !c.shadow);
         colorField("Background", 270, 306, c.background, v -> c.background = v);
@@ -266,7 +272,8 @@ public final class AuctionScreen extends Screen {
                   return;
                 }
                 if (!c.presets.contains(c.duration)) c.presets.add(c.duration);
-                c.save();
+                mod.select(mod.selected());
+                c.savePreset(AuctionTimer.format(c.duration));
                 buildBody();
               }
             },
@@ -282,8 +289,10 @@ public final class AuctionScreen extends Screen {
               27,
               () -> compact(seconds),
               () -> {
-                mod.duration(seconds);
-                duration.setValue(AuctionTimer.format(seconds));
+                if (c.auctionPresets.containsKey(AuctionTimer.format(seconds)))
+                  mod.loadPreset(AuctionTimer.format(seconds));
+                else mod.duration(seconds);
+                buildBody();
               },
               false);
           button(
@@ -295,6 +304,7 @@ public final class AuctionScreen extends Screen {
               () -> "×",
               () -> {
                 c.presets.remove(seconds);
+                c.auctionPresets.remove(AuctionTimer.format(seconds));
                 c.save();
                 buildBody();
               },
@@ -307,7 +317,7 @@ public final class AuctionScreen extends Screen {
             150,
             32,
             () -> mod.timer.running() ? "Pause auction" : "Start / resume",
-            () -> mod.timer.toggle(),
+            () -> mod.toggleTimer(),
             true);
         button(body, 430, 269, 90, 32, () -> "Reset", () -> mod.action(3), false);
         button(body, 530, 269, 99, 32, () -> "−10 sec", () -> mod.action(6), false);
@@ -392,8 +402,136 @@ public final class AuctionScreen extends Screen {
             },
             false);
       }
+      case 4 -> {
+        label("FOUR FAMILIES · LICENSED COVERAGE ATLAS TYPOGRAPHY", 270, 124);
+        fontButton(270, 151, 0, "Interface", c.uiFont);
+        fontButton(518, 151, 1, "Countdown", c.timerFont);
+        fontButton(270, 195, 2, "Ending", c.endingFont);
+        button(
+            body,
+            518,
+            195,
+            220,
+            32,
+            () ->
+                "Weight: " + new String[] {"Regular 400", "SemiBold 600", "Bold 700"}[c.fontWeight],
+            () -> c.fontWeight = (c.fontWeight + 1) % 3,
+            false);
+        slider(
+            270, 254, 220, () -> "Item name size", () -> c.textSize, v -> c.textSize = v, .6, 1.5);
+        slider(
+            518,
+            254,
+            220,
+            () -> "Countdown size",
+            () -> c.timerSize,
+            v -> c.timerSize = v,
+            .6,
+            1.3);
+        toggle(
+            270,
+            320,
+            220,
+            "Always show hours",
+            () -> c.showHours,
+            () -> c.showHours = !c.showHours);
+        label("Inter · Manrope · Outfit · Plus Jakarta Sans", 270, 388);
+        label("Cached antialiased glyphs · Linear sampling · Unicode fallback", 270, 410);
+      }
+      case 5 -> {
+        label("CINEMATIC AUCTION ENDING", 270, 124);
+        toggle(
+            270,
+            148,
+            220,
+            "Ending animation",
+            () -> c.endingEnabled,
+            () -> c.endingEnabled = !c.endingEnabled);
+        toggle(
+            518, 148, 220, "Accent glow", () -> c.endingGlow, () -> c.endingGlow = !c.endingGlow);
+        label("Completion text", 270, 202);
+        field(270, 220, 468, c.endingText, "AUCTION ENDED!", v -> c.endingText = v);
+        slider(
+            270,
+            274,
+            220,
+            () -> "Sequence duration",
+            () -> c.endingDuration,
+            v -> c.endingDuration = v,
+            .5,
+            8);
+        slider(
+            518,
+            274,
+            220,
+            () -> "Spin acceleration",
+            () -> c.endingMultiplier,
+            v -> c.endingMultiplier = v,
+            1,
+            8);
+        slider(
+            270,
+            336,
+            220,
+            () -> "Ending text size",
+            () -> c.endingSize,
+            v -> c.endingSize = v,
+            .6,
+            2.5);
+        colorField("Ending text color", 518, 330, c.endingColor, v -> c.endingColor = v);
+        fontButton(270, 402, 2, "Ending font", c.endingFont);
+      }
+      case 6 -> {
+        label("HUD GEOMETRY & MATERIAL", 270, 124);
+        slider(270, 150, 220, () -> "Panel width", () -> c.hudWidth, v -> c.hudWidth = v, 260, 520);
+        slider(
+            518, 150, 220, () -> "Panel height", () -> c.hudHeight, v -> c.hudHeight = v, 100, 180);
+        slider(
+            270,
+            212,
+            220,
+            () -> "Item preview size",
+            () -> c.itemSize,
+            v -> c.itemSize = v,
+            28,
+            68);
+        toggle(
+            518, 212, 220, "Item circle", () -> c.itemCircle, () -> c.itemCircle = !c.itemCircle);
+        toggle(270, 278, 220, "Crisp border", () -> c.borders, () -> c.borders = !c.borders);
+        toggle(518, 278, 220, "Surface gradient", () -> c.gradient, () -> c.gradient = !c.gradient);
+        label("Placement remains relative to the viewport across GUI scales.", 270, 360);
+        button(
+            body,
+            270,
+            398,
+            220,
+            32,
+            () -> "Drag HUD in world",
+            () -> {
+              positioning = true;
+              clearFocus();
+            },
+            true);
+      }
     }
     updateVisibility();
+  }
+
+  private void fontButton(int x, int y, int target, String title, int face) {
+    button(
+        body,
+        x,
+        y,
+        220,
+        32,
+        () -> title + ": " + PremiumFonts.NAMES[face],
+        () -> {
+          fontMenu = target;
+          fontX = x;
+          fontY = Math.min(330, y + 34);
+          clearFocus();
+        },
+        false);
   }
 
   private static String compact(long seconds) {
@@ -499,7 +637,13 @@ public final class AuctionScreen extends Screen {
     Glass.text(g, "LIVE PREVIEW", 24, 91, .65f, 0x93A7C0, alpha);
     ScreenRectangle modalClip =
         new ScreenRectangle((int) originX, (int) originY, (int) (W * uiScale), (int) (H * uiScale));
-    mod.hud.draw(g, 24, 116, .59f, alpha, modalClip);
+    mod.hud.draw(
+        g,
+        24,
+        116,
+        (float) Math.min(.59, Math.min(194 / mod.config.hudWidth, 80 / mod.config.hudHeight)),
+        alpha,
+        modalClip);
     Glass.text(g, "Your auction, beautifully in focus.", 24, 207, .72f, 0x8292AB, alpha);
     Glass.round(g, 24, 249, 194, 119, 12, Glass.color(0xFFFFFF, .035 * alpha));
     Glass.text(g, "SELECTED ITEM", 36, 264, .6f, 0x8292AB, alpha);
@@ -518,9 +662,9 @@ public final class AuctionScreen extends Screen {
     renderWidgets(g, fixed, lx, ly, delta, alpha);
     Glass.round(
         g,
-        280 + tab * 120,
+        270 + tab * 68,
         103,
-        80,
+        48,
         2,
         1,
         Glass.color(mod.config.accent, alpha * (1 - transitionTarget)));
@@ -539,6 +683,19 @@ public final class AuctionScreen extends Screen {
       g.pose().popMatrix();
     }
     g.disableScissor();
+    if (fontMenu >= 0) {
+      g.nextStratum();
+      Glass.panel(g, fontX, fontY, 220, 108, 10, 0x172234, .99, true);
+      for (int i = 0; i < 4; i++)
+        Glass.text(
+            g,
+            Glass.styled(PremiumFonts.NAMES[i], i),
+            fontX + 12,
+            fontY + 9 + i * 25,
+            1,
+            mod.config.text,
+            1);
+    }
     g.fill(264, 462, 738, 463, Glass.color(0xFFFFFF, .06 * alpha));
     Glass.text(g, notice, 264, 477, .72f, 0x8A9BB4, alpha);
     g.pose().popMatrix();
@@ -614,6 +771,7 @@ public final class AuctionScreen extends Screen {
       g.pose().scale(1.35f, 1.35f);
       g.item(stack, 0, 0);
       g.pose().popMatrix();
+
       if (hover)
         hoveredItem =
             stack.getHoverName().getString()
@@ -636,6 +794,16 @@ public final class AuctionScreen extends Screen {
         .73f,
         0x93A7C0,
         a);
+    if (!hoveredItem.isEmpty() && a > .99) {
+      int tx = Math.min(mx + 12, 500), ty = Math.min(my + 12, 397);
+      g.nextStratum();
+      Glass.panel(g, tx, ty, 230, 42, 8, 0x172234, .98, true);
+      g.enableScissor(tx + 6, ty + 3, tx + 224, ty + 39);
+      String[] info = hoveredItem.split("  ·  ", 2);
+      Glass.text(g, info[0], tx + 9, ty + 7, .9f, mod.config.text, 1);
+      if (info.length > 1) Glass.text(g, info[1], tx + 9, ty + 23, .72f, 0x8A9BB4, 1);
+      g.disableScissor();
+    }
     // Fade actual vanilla item icons together with the rest of the shared panel.
     if (a < .98) Glass.round(g, 269, 203, 470, 218, 8, Glass.color(0x101826, 1 - a));
   }
@@ -682,9 +850,9 @@ public final class AuctionScreen extends Screen {
           y = mod.hud.y(height, s);
       if (e.button() == InputConstants.MOUSE_BUTTON_LEFT
           && e.x() >= x
-          && e.x() <= x + HudRenderer.WIDTH * s
+          && e.x() <= x + mod.config.hudWidth * s
           && e.y() >= y
-          && e.y() <= y + HudRenderer.HEIGHT * s) {
+          && e.y() <= y + mod.config.hudHeight * s) {
         dragging = true;
         dragX = e.x() - x;
         dragY = e.y() - y;
@@ -694,6 +862,20 @@ public final class AuctionScreen extends Screen {
     }
     if (moving()) return true;
     MouseButtonEvent l = local(e);
+    if (fontMenu >= 0) {
+      int index = (int) ((l.y() - fontY - 4) / 25);
+      if (l.x() >= fontX && l.x() < fontX + 220 && l.y() >= fontY + 4 && index >= 0 && index < 4) {
+        switch (fontMenu) {
+          case 0 -> mod.config.uiFont = index;
+          case 1 -> mod.config.timerFont = index;
+          case 2 -> mod.config.endingFont = index;
+        }
+        mod.config.save();
+      }
+      fontMenu = -1;
+      buildBody();
+      return true;
+    }
     if (transitionTarget == 1
         && l.x() >= 270
         && l.x() < 730
@@ -720,9 +902,10 @@ public final class AuctionScreen extends Screen {
   public boolean mouseDragged(MouseButtonEvent e, double dx, double dy) {
     if (positioning && dragging) {
       double s = mod.hud.effectiveScale(width, height);
-      mod.config.x = Math.clamp((e.x() - dragX) / Math.max(1, width - HudRenderer.WIDTH * s), 0, 1);
+      mod.config.x =
+          Math.clamp((e.x() - dragX) / Math.max(1, width - mod.config.hudWidth * s), 0, 1);
       mod.config.y =
-          Math.clamp((e.y() - dragY) / Math.max(1, height - HudRenderer.HEIGHT * s), 0, 1);
+          Math.clamp((e.y() - dragY) / Math.max(1, height - mod.config.hudHeight * s), 0, 1);
       return true;
     }
     return super.mouseDragged(local(e), dx / uiScale, dy / uiScale);
@@ -769,6 +952,10 @@ public final class AuctionScreen extends Screen {
       return true;
     }
     if (e.key() == InputConstants.KEY_ESCAPE) {
+      if (fontMenu >= 0) {
+        fontMenu = -1;
+        return true;
+      }
       if (positioning) {
         positioning = false;
         dragging = false;

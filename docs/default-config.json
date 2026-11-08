@@ -21,5 +21,27 @@
     60,
     120,
     300
-  ]
+  ],
+  "schemaVersion": 2,
+  "uiFont": 0,
+  "timerFont": 2,
+  "endingFont": 2,
+  "fontWeight": 1,
+  "textSize": 1,
+  "timerSize": 1,
+  "endingSize": 1.5,
+  "endingDuration": 2.8,
+  "endingMultiplier": 4,
+  "hudWidth": 328,
+  "hudHeight": 116,
+  "itemSize": 56,
+  "endingEnabled": true,
+  "endingGlow": true,
+  "showHours": false,
+  "itemCircle": true,
+  "borders": true,
+  "gradient": true,
+  "endingText": "AUCTION ENDED!",
+  "endingColor": 10416331,
+  "auctionPresets": {}
 }
