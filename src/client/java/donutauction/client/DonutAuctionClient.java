@@ -95,7 +95,11 @@ public final class DonutAuctionClient implements ClientModInitializer {
           if (mc.gui.screen() != null) return;
           for (int i = 0; i < keys.length; i++) while (keys[i].consumeClick()) action(i);
         });
-    ClientLifecycleEvents.CLIENT_STOPPING.register(mc -> config.save());
+    ClientLifecycleEvents.CLIENT_STOPPING.register(
+        mc -> {
+          config.save();
+          PremiumFonts.close();
+        });
     LOG.info("DonutAuction+ loaded for Minecraft 26.3");
   }
 
@@ -127,6 +131,7 @@ public final class DonutAuctionClient implements ClientModInitializer {
   public boolean select(ItemStack stack) {
     if (stack.isEmpty()) return false;
     selected = stack.copy();
+    timer.reset(config.duration);
     var encoded = ItemStack.CODEC.encodeStart(ops(Minecraft.getInstance()), selected);
     var value =
         encoded.resultOrPartial(message -> LOG.warn("Could not persist auction item: {}", message));
@@ -149,6 +154,21 @@ public final class DonutAuctionClient implements ClientModInitializer {
     config.save();
   }
 
+  public void loadPreset(String name) {
+    AuctionConfig next = config.preset(name);
+    if (next != null) {
+      config = next;
+      restoreItem(Minecraft.getInstance());
+      timer.reset(config.duration);
+      config.save();
+    }
+  }
+
+  public void toggleTimer() {
+    if (timer.ended()) timer.reset(config.duration);
+    timer.toggle();
+  }
+
   public void action(int action) {
     switch (action) {
       case 0 -> {
@@ -156,7 +176,7 @@ public final class DonutAuctionClient implements ClientModInitializer {
         config.save();
       }
       case 1 -> Minecraft.getInstance().gui.setScreen(new AuctionScreen(this));
-      case 2 -> timer.toggle();
+      case 2 -> toggleTimer();
       case 3 -> timer.reset(config.duration);
       case 4 -> useHeld();
       case 5 -> timer.add(10);

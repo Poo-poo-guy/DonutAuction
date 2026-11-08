@@ -4,7 +4,9 @@
   "compatibilityLevel": "JAVA_25",
   "client": [
     "GuiGraphicsAccessor",
-    "PictureInPictureAccessor"
+    "PictureInPictureAccessor",
+    "GuiClipMixin",
+    "EditBoxAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

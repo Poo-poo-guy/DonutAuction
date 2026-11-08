@@ -42,3 +42,6 @@ replay_*.log
 # Local validation logs
 run-client-validation.log
 build-validation.log
+
+build-v2.log
+run-v2.log
