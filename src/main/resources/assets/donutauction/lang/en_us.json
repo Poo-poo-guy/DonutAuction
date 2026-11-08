@@ -1,0 +1,11 @@
+{
+  "key.donutauction.toggle": "Show / hide auction HUD",
+  "key.donutauction.settings": "Open auction studio",
+  "key.donutauction.start_pause": "Start / pause auction timer",
+  "key.donutauction.reset": "Reset auction timer",
+  "key.donutauction.held": "Select held auction item",
+  "key.donutauction.add": "Add 10 seconds",
+  "key.donutauction.subtract": "Subtract 10 seconds",
+  "key.category.donutauction.controls": "DonutAuction+",
+  "key.categories.donutauction.controls": "DonutAuction+"
+}

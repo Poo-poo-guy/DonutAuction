@@ -1,14 +1,12 @@
 {
-	"required": true,
-	"package": "donutauction.client.mixin",
-	"compatibilityLevel": "JAVA_25",
-	"client": [
-		"ExampleClientMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
-	},
-	"overwrites": {
-		"requireAnnotations": true
-	}
+  "required": true,
+  "package": "donutauction.client.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "GuiGraphicsAccessor",
+    "PictureInPictureAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
 }
