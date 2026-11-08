@@ -1,0 +1,25 @@
+{
+  "visible": true,
+  "shadow": true,
+  "x": 0.04,
+  "y": 0.08,
+  "scale": 0.65,
+  "opacity": 0.82,
+  "radius": 16,
+  "rotationSpeed": 32,
+  "animationSeconds": 0.42,
+  "background": 1054501,
+  "accent": 10416331,
+  "text": 15594490,
+  "timer": 16777215,
+  "urgent": 16748203,
+  "font": 0,
+  "animationStyle": 0,
+  "duration": 120,
+  "presets": [
+    30,
+    60,
+    120,
+    300
+  ]
+}

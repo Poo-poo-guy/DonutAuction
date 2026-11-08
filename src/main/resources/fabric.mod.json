@@ -1,38 +1,14 @@
 {
-	"schemaVersion": 1,
-	"id": "donutauction",
-	"version": "${version}",
-	"name": "DonutAuction+",
-	"description": "This is an example description! Tell everyone what your mod is about!",
-	"authors": [
-		"Me!"
-	],
-	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
-	},
-	"license": "CC0-1.0",
-	"icon": "assets/donutauction/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-			"donutauction.DonutAuction"
-		],
-		"client": [
-			"donutauction.client.DonutAuctionClient"
-		]
-	},
-	"mixins": [
-		"donutauction.mixins.json",
-		{
-			"config": "donutauction.client.mixins.json",
-			"environment": "client"
-		}
-	],
-	"depends": {
-		"fabricloader": ">=0.20.1",
-		"minecraft": "~26.3",
-		"java": ">=25",
-		"fabric-api": "*"
-	}
+  "schemaVersion": 1,
+  "id": "donutauction",
+  "version": "${version}",
+  "name": "DonutAuction+",
+  "description": "A polished client-side auction HUD with rolling digits, captured items, and streamer controls.",
+  "authors": ["DonutAuction+"],
+  "license": "CC0-1.0",
+  "icon": "assets/donutauction/icon.png",
+  "environment": "client",
+  "entrypoints": {"client": ["donutauction.client.DonutAuctionClient"]},
+  "mixins": [{"config": "donutauction.client.mixins.json", "environment": "client"}],
+  "depends": {"fabricloader": ">=0.20.1", "minecraft": "26.3", "java": ">=25", "fabric-api": ">=0.165.2+26.3"}
 }
