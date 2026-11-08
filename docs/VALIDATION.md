@@ -7,7 +7,7 @@
 - Five JUnit tests pass with zero failures/errors. Coverage includes monotonic deadline accuracy at simulated 60/144/240/360 FPS; pause/resume, time edits, stalls, and expiry; duration parsing; uninterrupted reel retargeting and wraparound; and monotonic easing for all three styles.
 - Inspected the packaged jar: client-only Fabric metadata targeting exactly 26.3, Java classes, both fonts, texture/icon assets, translations, and licenses are included.
 - `git diff --check` passed.
-- The first GitHub Actions run hit the starter wrapper's 10-second Gradle-download timeout before compilation. The wrapper now allows 60 seconds with three retries while retaining SHA-256 distribution verification.
+- The first GitHub Actions run hit the starter wrapper's 10-second Gradle-download timeout before compilation. The wrapper now allows 60 seconds with three retries while retaining SHA-256 distribution verification. A subsequent clean runner exposed a resource-processing closure referencing the Gradle project at execution time; capturing the version during configuration fixes it. Clean local builds were verified with both a new and reused configuration-cache entry.
 
 ## Checks performed in Minecraft
 
